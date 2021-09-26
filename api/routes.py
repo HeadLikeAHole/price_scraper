@@ -6,3 +6,4 @@ from . import app, api
 @app.route('/')
 def root():
     return send_from_directory(app.static_folder, 'index.html')
+
