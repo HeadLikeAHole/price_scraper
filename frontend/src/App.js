@@ -3,7 +3,8 @@ import {
   Switch,
   Route,
   Link
-} from "react-router-dom";
+} from 'react-router-dom';
+import Navbar from './components/Navbar';
 
 export default function App() {
   return (
