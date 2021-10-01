@@ -1,29 +1,27 @@
 import re
+from .models import User
 
 
-def length_validator(data_type, min_length=None, max_length=None):
-    def validate(value, name):
-        if not isinstance(value, data_type):
-            raise ValueError(f'Invalid data type for {name}')
+def username_validator(value):
+    if not isinstance(value, str):
+        raise ValueError('Username should be of type string.')
 
-        if min_length and len(value) < min_length:
-            raise ValueError(f'{name} must be at least {min_length} characters long')
+    if len(value) < 1 or len(value) > 80:
+        raise ValueError('Username should be from 1 to 80 characters long.')
 
-        if max_length and len(value) > max_length:
-            raise ValueError(f'{name} must not exceed {max_length} characters')
+    if User.query.filter_by(username=value).first():
+        raise ValueError('Username already exists. Try a different one.')
 
-    return validate
+    return value
 
 
 def email_validator(value):
     regex = r"^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$"
 
     if not re.match(regex, value):
-        raise ValueError('Invalid email')
+        raise ValueError('Invalid email.')
 
+    if User.query.filter_by(email=value).first():
+        raise ValueError('Email already exists. Try a different one.')
 
-def password_validator(value):
-    regex = r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!#%*?&]{8,}$"
-
-    if not re.match(regex, value):
-        raise ValueError('Password should have at least one number, one uppercase and one lowercase character, one special symbol and be at least 8 characters long.')
+    return value

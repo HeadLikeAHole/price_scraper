@@ -2,6 +2,7 @@ from flask import send_from_directory
 from flask_restful import Resource, reqparse, fields, inputs, marshal_with
 from . import app, api, bcrypt, db
 from .models import User
+from .validators import username_validator, email_validator
 
 
 @app.route('/')
@@ -19,9 +20,13 @@ user_fields = {
 
 
 user_create_args = reqparse.RequestParser()
-user_create_args.add_argument('username', type=inputs.regex('^[a-zA-Z0-9]{1, 80}$'), help='Username is required', required=True)
-user_create_args.add_argument('email', type=email_validator, help='Email is required', required=True)
-user_create_args.add_argument('password', type=password_validator, help='Password is required', required=True)
+user_create_args.add_argument('username', type=username_validator)
+user_create_args.add_argument('email', type=email_validator)
+user_create_args.add_argument(
+    'password',
+    type=inputs.regex(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!#%*?&]{8,}$'),
+    help='Password should contain at least one number, one uppercase and one lowercase character, one special symbol and be at least 8 characters long.'
+)
 
 
 class Users(Resource):
