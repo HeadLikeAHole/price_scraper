@@ -6,8 +6,8 @@ class User(db.Model):
     username = db.Column(db.String(80), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(60), nullable=False)
-    # is_superuser = db.Column(db.Boolean, nullable=False, default=False)
-    # products = db.relationship('Product', backref='user', lazy=True)
+    is_superuser = db.Column(db.Boolean, nullable=False, default=False)
+    products = db.relationship('Product', backref='user', lazy=True)
 
     @staticmethod
     def hash_password(password):
@@ -28,11 +28,18 @@ class User(db.Model):
         return f'<User {self.username}>'
 
 
-# class Product(db.Model):
-#     id = db.Column(db.Integer, primary_key=True)
-#     link = db.Column(db.Text, nullable=False)
-#     description = db.Column(db.Text)
-#     current_price = db.Column(db.Boolean)
-#     desired_price = db.Column(db.Boolean)
-#     is_monitored = db.Column(db.Boolean, nullable=False, default=True)
-#     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+class Product(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    link = db.Column(db.Text, nullable=False)
+    description = db.Column(db.Text)
+    current_price = db.Column(db.Boolean)
+    desired_price = db.Column(db.Boolean)
+    is_monitored = db.Column(db.Boolean, nullable=False, default=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    store_id = db.Column(db.Integer, db.ForeignKey('store.id'), nullable=False)
+
+
+# online store
+class Store(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    link = db.Column(db.Text, nullable=False)
