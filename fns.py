@@ -39,4 +39,4 @@ def check_price(user_id=None, product_id=None):
     product_price = int(''.join([i for i in price_str if i.isdigit()]))
 
     if product_price <= desired_price:
-        send_mail()
+        send_email()
