@@ -5,7 +5,7 @@ from flask_restful import Api
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_bcrypt import Bcrypt
-from flask_jwt import JWT
+from flask_jwt_extended import JWTManager
 
 
 load_dotenv()
@@ -14,7 +14,9 @@ app = Flask(__name__, static_url_path='', static_folder='../frontend/build')
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DB_URI')
 # remove FSADeprecationWarning from terminal
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SECRET_KEY'] = os.environ.get('APP_SECRET_KEY')
+# show more detailed errors
+app.config['PROPAGATE_EXCEPTIONS'] = True
+app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY')
 
 # Create api
 api = Api(app)
@@ -26,6 +28,6 @@ migrate = Migrate(app, db)
 
 bcrypt = Bcrypt(app)
 
-from . import routes, models
+jwt = JWTManager(app)
 
-jwt = JWT(app, models.User.authenticate, models.User.identity)
+from . import routes, models

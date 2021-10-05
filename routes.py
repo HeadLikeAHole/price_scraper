@@ -1,6 +1,7 @@
 from flask import send_from_directory
 from flask_restful import Resource, reqparse, fields, inputs, marshal_with
-from . import app, api, db
+from flask_jwt_extended import create_access_token, create_refresh_token
+from . import app, api, db, bcrypt
 from .models import User
 from .validators import username_validator, email_validator
 
@@ -25,8 +26,7 @@ user_create_args.add_argument('email', type=email_validator)
 user_create_args.add_argument(
     'password',
     type=inputs.regex(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!#%*?&]{8,}$'),
-    help='Password should contain at least one number, \
-    one uppercase and one lowercase character, one special symbol and be at least 8 characters long.'
+    help='Password should contain at least one number, one uppercase and one lowercase character, one special symbol and be at least 8 characters long.'
 )
 
 
@@ -39,7 +39,7 @@ class Users(Resource):
         email = args['email']
         password = args['password']
 
-        password_hash = User.hash_password(password)
+        password_hash = bcrypt.generate_password_hash(password).decode('utf-8')
 
         user = User(username=username, email=email, password_hash=password_hash)
         db.session.add(user)
@@ -48,4 +48,38 @@ class Users(Resource):
         return {'data': user}, 201
 
 
+login_fields = {
+    'data': {
+        'access_token': fields.String(attribute='data.access_token'),
+        'refresh_token': fields.String(attribute='data.refresh_token')
+    }
+}
+
+login_args = reqparse.RequestParser()
+login_args.add_argument('username', type=str, required=True)
+login_args.add_argument('password', type=str, required=True)
+
+
+class Login(Resource):
+    @marshal_with(login_fields)
+    def post(self):
+        args = login_args.parse_args()
+
+        username = args['username']
+        password = args['password']
+
+        user = User.query.filter_by(username=username).first()
+        if user and bcrypt.check_password_hash(user.password_hash, password):
+            access_token = create_access_token(identity=user.id, fresh=True)
+            refresh_token = create_refresh_token(user.id)
+
+            return {
+                'data': {
+                    'access_token': access_token,
+                    'refresh_token': refresh_token
+                }
+            }
+
+
 api.add_resource(Users, '/users')
+api.add_resource(Login, '/login')

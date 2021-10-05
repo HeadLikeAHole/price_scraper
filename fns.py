@@ -5,17 +5,17 @@ from bs4 import BeautifulSoup
 from models import User, Product
 
 
-def send_email(title, link, recipient):
+def send_email(product, link, recipient):
     server = smtplib.SMTP_SSL('smtp.yandex.com', 465)
 
-    server.login(os.environ.get('EMAIL_USERNAME'), os.environ.get('EMAIL_PASSWORD'))
+    server.login(os.environ.get('EMAIL_HOST_USER'), os.environ.get('EMAIL_HOST_PASSWORD'))
 
     subject = 'Price Drop!'
     body = 'Check the link of the product https://www.lamoda.ru/p/rtlaao673801/shoes-nike-krossovki/'
 
     message = f'Subject: {subject} \n\n{body}'
 
-    server.sendmail(os.environ.get('EMAIL_USERNAME'), recipient, message)
+    server.sendmail(os.environ.get('EMAIL_HOST_USER'), recipient, message)
 
     print('Message has been sent!')
 
