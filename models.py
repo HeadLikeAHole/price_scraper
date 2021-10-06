@@ -13,6 +13,12 @@ class User(db.Model):
         return f'<User {self.username}>'
 
 
+class BlockedToken(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    jti = db.Column(db.String(36), nullable=False)
+    created_at = db.Column(db.DateTime, nullable=False)
+
+
 # class Product(db.Model):
 #     id = db.Column(db.Integer, primary_key=True)
 #     link = db.Column(db.Text, nullable=False)

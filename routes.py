@@ -1,8 +1,15 @@
+from datetime import datetime
 from flask import send_from_directory
 from flask_restful import Resource, reqparse, fields, inputs, marshal_with
-from flask_jwt_extended import create_access_token, create_refresh_token
+from flask_jwt_extended import (
+    create_access_token,
+    create_refresh_token,
+    get_jwt_identity,
+    jwt_required,
+    get_jwt
+)
 from . import app, api, db, bcrypt
-from .models import User
+from .models import User, BlockedToken
 from .validators import username_validator, email_validator
 
 
@@ -81,5 +88,26 @@ class Login(Resource):
             }
 
 
+class Logout(Resource):
+    @jwt_required()
+    def post(self):
+        jti = get_jwt()['jti']
+        now = datetime.now()
+        token = BlockedToken(jti=jti, created_at=now)
+        db.session.add(token)
+        db.session.commit()
+        return {'data': {'message': 'Logout successful'}}
+
+
+class Refresh_Token(Resource):
+    @jwt_required(refresh=True)
+    def post(self):
+        identity = get_jwt_identity()
+        access_token = create_access_token(identity=identity)
+        return {'data': {'access_token': access_token}}
+         
+
 api.add_resource(Users, '/users')
 api.add_resource(Login, '/login')
+api.add_resource(Logout, '/logout')
+api.add_resource(Refresh_Token, '/refresh-token')
