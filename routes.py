@@ -21,17 +21,14 @@ def index():
 
 user_schema = UserSchema()
 
+
 class Users(Resource):
     def post(self):
-        args = user_create_args.parse_args()
+        user = user_schema.load(request.get_json())
+        print(user)
+        return user_schema.dump(request.get_json())
+        # password_hash = bcrypt.generate_password_hash(password).decode('utf-8')
 
-        username = args['username']
-        email = args['email']
-        password = args['password']
-
-        password_hash = bcrypt.generate_password_hash(password).decode('utf-8')
-
-        user = User(username=username, email=email, password_hash=password_hash)
         db.session.add(user)
         db.session.commit()
 

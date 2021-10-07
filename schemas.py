@@ -2,7 +2,6 @@ from . import ma
 from .models import User
 
 
-class UserSchema(ma.ModelSchema):
+class UserSchema(ma.SQLAlchemyAutoSchema):
 	class Meta:
 		model = User
-		fields = ('username', 'email')
