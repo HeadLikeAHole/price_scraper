@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 from flask import Flask
 from flask_restful import Api
 from flask_sqlalchemy import SQLAlchemy
+from flask_marshmallow import Marshmallow
 from flask_migrate import Migrate
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import JWTManager
@@ -23,6 +24,9 @@ api = Api(app)
 
 # Create database connection object
 db = SQLAlchemy(app)
+
+# should go after db declaration
+ma = Marshmallow(app)
 
 migrate = Migrate(app, db)
 
