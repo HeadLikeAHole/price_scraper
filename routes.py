@@ -1,5 +1,5 @@
 from datetime import datetime
-from flask import send_from_directory, request
+from flask import send_from_directory
 from flask_restful import Resource
 from flask_jwt_extended import (
     create_access_token,
@@ -9,9 +9,9 @@ from flask_jwt_extended import (
     get_jwt
 )
 from . import app, api, db, bcrypt
+from .validation import get_data_or_400
 from .models import User, BlockedToken
-from .schemas import UserSchema
-from .validators import username_validator, email_validator
+from .schemas import UserSchema, LoginSchema
 
 
 @app.route('/')
@@ -19,40 +19,39 @@ def index():
     return send_from_directory(app.static_folder, 'index.html')
 
 
-user_schema = UserSchema()
-
-
 class Users(Resource):
     def post(self):
-        user = user_schema.load(request.get_json())
-        print(user)
-        return user_schema.dump(request.get_json())
-        # password_hash = bcrypt.generate_password_hash(password).decode('utf-8')
+        user_schema = UserSchema()
+
+        user = get_data_or_400(user_schema)
+
+        # hash password
+        user.password = bcrypt.generate_password_hash(user.password).decode('utf-8')
 
         db.session.add(user)
         db.session.commit()
 
-        return {'data': user}, 201
+        return user_schema.dump(user), 201
 
 
 class Login(Resource):
     def post(self):
-        args = login_args.parse_args()
+        login_schema = LoginSchema()
 
-        username = args['username']
-        password = args['password']
+        data = get_data_or_400(login_schema)
+
+        username = data['username']
+        password = data['password']
 
         user = User.query.filter_by(username=username).first()
-        if user and bcrypt.check_password_hash(user.password_hash, password):
-            access_token = create_access_token(identity=user.id, fresh=True)
-            refresh_token = create_refresh_token(user.id)
+        if user and bcrypt.check_password_hash(user.password, password):
+            if user.is_active:
+                access_token = create_access_token(identity=user.id, fresh=True)
+                refresh_token = create_refresh_token(user.id)
 
-            return {
-                'data': {
-                    'access_token': access_token,
-                    'refresh_token': refresh_token
-                }
-            }
+                return {'access_token': access_token, 'refresh_token': refresh_token}
+
+            return {'error': 'Email not confirmed'}, 400
 
 
 class Logout(Resource):
@@ -63,18 +62,18 @@ class Logout(Resource):
         token = BlockedToken(jti=jti, created_at=now)
         db.session.add(token)
         db.session.commit()
-        return {'data': {'message': 'Logout successful'}}
+        return {'message': 'Logout successful'}
 
 
-class Refresh_Token(Resource):
+class RefreshToken(Resource):
     @jwt_required(refresh=True)
     def post(self):
         identity = get_jwt_identity()
-        access_token = create_access_token(identity=identity)
-        return {'data': {'access_token': access_token}}
+        access_token = create_access_token(identity=identity, fresh=False)
+        return {'access_token': access_token}
          
 
 api.add_resource(Users, '/users')
 api.add_resource(Login, '/login')
 api.add_resource(Logout, '/logout')
-api.add_resource(Refresh_Token, '/refresh-token')
+api.add_resource(RefreshToken, '/refresh-token')
