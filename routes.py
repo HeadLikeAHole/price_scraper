@@ -51,7 +51,7 @@ class Login(Resource):
 
                 return {'access_token': access_token, 'refresh_token': refresh_token}
 
-            return {'error': 'Email not confirmed'}, 400
+            return {'error': 'You have not confirmed registration. Please check your email.'}, 400
 
 
 class Logout(Resource):
@@ -71,9 +71,23 @@ class RefreshToken(Resource):
         identity = get_jwt_identity()
         access_token = create_access_token(identity=identity, fresh=False)
         return {'access_token': access_token}
-         
+
+
+class UserConfirm(Resource):
+    def get(self, user_id):
+        user = User.query.filter_by(id=user_id).first()
+
+        if not user:
+            return {'message': 'user not found'}, 404
+
+        user.is_active = True
+        db.session.commit()
+
+        return {'message': 'user confirmed'}, 200
+
 
 api.add_resource(Users, '/users')
 api.add_resource(Login, '/login')
 api.add_resource(Logout, '/logout')
 api.add_resource(RefreshToken, '/refresh-token')
+api.add_resource(UserConfirm, '/user-confirm/<int:user_id>')
