@@ -31,6 +31,8 @@ class Users(Resource):
         db.session.add(user)
         db.session.commit()
 
+        user.send_confirmation_email()
+
         return user_schema.dump(user), 201
 
 

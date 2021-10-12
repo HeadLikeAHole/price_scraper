@@ -1,4 +1,6 @@
+from flask import request, url_for
 from . import db
+from .utils import send_email
 
 
 class User(db.Model):
@@ -9,6 +11,15 @@ class User(db.Model):
     # is_superuser = db.Column(db.Boolean, nullable=False, default=False)
     is_active = db.Column(db.Boolean, nullable=False, default=False)
     # products = db.relationship('Product', backref='user', lazy=True)
+
+    def send_confirmation_email(self):
+        # get url root "http://127.0.0.1:5000/" without the last character which is a slash
+        link = request.url_root[:-1] + url_for('userconfirm', user_id=self.id)
+        send_email(
+            'Registration confirmation',
+            f'Please click the link to confirm your registraition {link}',
+            self.email
+        )
 
     def __repr__(self):
         return f'<User {self.username}>'
