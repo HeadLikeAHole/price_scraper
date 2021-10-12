@@ -10,7 +10,7 @@ from flask_jwt_extended import (
 )
 from . import app, api, db, bcrypt
 from .validation import get_data_or_400
-from .models import User, BlockedToken
+from .models import User, BlockedToken, UserConfirmation
 from .schemas import UserSchema, LoginSchema
 
 
@@ -75,21 +75,48 @@ class RefreshToken(Resource):
         return {'access_token': access_token}
 
 
-class UserConfirm(Resource):
-    def get(self, user_id):
-        user = User.query.filter_by(id=user_id).first()
+class ConfirmUser(Resource):
+    def get(self, user_confirmation_id):
+        user_confirmation = UserConfirmation.query.filter_by(id=user_confirmation_id).first()
 
-        if not user:
-            return {'message': 'user not found'}, 404
+        if not user_confirmation:
+            return {'message': 'Confirmation reference not found'}, 404
 
-        user.is_active = True
+        if user_confirmation.expired:
+            return {'message': 'The link has expired'}, 400
+
+        if user_confirmation.confirmed:
+            return {'message': 'Registration has already been confirmed'}, 400
+
+        user_confirmation.confirmed = True
         db.session.commit()
 
-        return {'message': 'user confirmed'}, 200
+        return {'message': 'User confirmation successful'}
+
+
+class ConfirmUserByUser(Resource):
+    def post(self, user_id):
+        user = User.query.filter_by(id=user_id).first()
+        if not user:
+            return {'message': 'User not found'}, 404
+
+        user_confirmation = user.latest_confirmation()
+        if user_confirmation:
+            if user_confirmation.confirmed:
+                return {'message': 'User has already been confirmed'}, 400
+            user_confirmation.make_expired()
+            db.session.commit()
+
+        new_confirmation = UserConfirmation(user_id)
+        db.session.add(new_confirmation)
+        db.session.commit()
+        user.send_confirmation_email()
+
+        return {'message': 'Confirmation email has been sent'}, 201
 
 
 api.add_resource(Users, '/users')
 api.add_resource(Login, '/login')
 api.add_resource(Logout, '/logout')
 api.add_resource(RefreshToken, '/refresh-token')
-api.add_resource(UserConfirm, '/user-confirm/<int:user_id>')
+api.add_resource(ConfirmUser, '/confirm-user/<int:user_id>')

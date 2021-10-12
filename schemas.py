@@ -2,7 +2,7 @@ from marshmallow import fields
 from marshmallow.validate import And, Length, Email, Regexp
 from . import ma
 from .validation import CUSTOM_ERRORS, is_unique
-from .models import User
+from .models import User, UserConfirmation
 
 
 class UserSchema(ma.SQLAlchemyAutoSchema):
@@ -26,3 +26,12 @@ class UserSchema(ma.SQLAlchemyAutoSchema):
 class LoginSchema(ma.Schema):
 	username = fields.Str()
 	password = fields.Str()
+
+
+class UserConfirmationSchema(ma.SQLAlchemyAutoSchema):
+	class Meta:
+		model = UserConfirmation
+		load_instance = True
+		include_fk = True
+		load_only = ('user',)
+		dump_only = ('id', 'expires_at', 'confirmed')

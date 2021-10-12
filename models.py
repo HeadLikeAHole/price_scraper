@@ -1,4 +1,8 @@
+from uuid import uuid4
+from time import time
+
 from flask import request, url_for
+
 from . import db
 from .utils import send_email
 
@@ -9,12 +13,16 @@ class User(db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(60), nullable=False)
     # is_superuser = db.Column(db.Boolean, nullable=False, default=False)
-    is_active = db.Column(db.Boolean, nullable=False, default=False)
     # products = db.relationship('Product', backref='user', lazy=True)
+    user_confirmation = db.relationship('UserConfirmation', lazy=True, cascade='all, delete-orphan')
+
+    @property
+    def latest_confirmation(self):
+        return self.user_confirmation.order_by(db.desc(UserConfirmation.expires_at)).first()
 
     def send_confirmation_email(self):
         # get url root "http://127.0.0.1:5000/" without the last character which is a slash
-        link = request.url_root[:-1] + url_for('userconfirm', user_id=self.id)
+        link = request.url_root[:-1] + url_for('confirmuser', user_confirmation_id=self.latest_confirmation.id)
         send_email(
             'Registration confirmation',
             f'Please click the link to confirm your registraition {link}',
@@ -29,6 +37,26 @@ class BlockedToken(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     jti = db.Column(db.String(36), nullable=False)
     created_at = db.Column(db.DateTime, nullable=False)
+
+
+class UserConfirmation(db.Model):
+    id = db.Column(db.String(50), primary_key=True)
+    expires_at = db.Column(db.Integer, nullable=False)
+    confirmed = db.Column(db.Boolean, nullable=False, default=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
+    def __init__(self, user_id):
+        self.user_id = user_id
+        self.id = uuid4().hex
+        self.expires_at = int(time()) + 1800  # 30 min from now
+
+    @property
+    def expired(self):
+        return time() - self.expires_at
+
+    def make_expired(self):
+        if not self.expired:
+            self.expires_at = int(time())
 
 
 # class Product(db.Model):
