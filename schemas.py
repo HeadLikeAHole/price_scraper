@@ -1,5 +1,7 @@
 from marshmallow import fields
 from marshmallow.validate import And, Length, Email, Regexp
+from marshmallow import pre_dump
+
 from . import ma
 from .validation import CUSTOM_ERRORS, is_unique
 from .models import User, UserConfirmation
@@ -20,7 +22,13 @@ class UserSchema(ma.SQLAlchemyAutoSchema):
 		model = User
 		load_instance = True
 		load_only = ('password',)
-		dump_only = ('is_active',)
+		dump_only = ('user_confirmation',)
+
+	# dump only the latest confirmation
+	@pre_dump
+	def _pre_dump(self, user):
+		user.user_confirmation = [user.latest_confirmation]
+		return user
 
 
 class LoginSchema(ma.Schema):

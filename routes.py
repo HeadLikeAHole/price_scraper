@@ -31,6 +31,10 @@ class Users(Resource):
         db.session.add(user)
         db.session.commit()
 
+        user_confirmation = UserConfirmation(user.id)
+        db.session.add(user_confirmation)
+        db.session.commit()
+
         user.send_confirmation_email()
 
         return user_schema.dump(user), 201
@@ -47,7 +51,8 @@ class Login(Resource):
 
         user = User.query.filter_by(username=username).first()
         if user and bcrypt.check_password_hash(user.password, password):
-            if user.is_active:
+            user_confirmation = user.latest_confirmation
+            if user_confirmation and user_confirmation.confirmed:
                 access_token = create_access_token(identity=user.id, fresh=True)
                 refresh_token = create_refresh_token(user.id)
 
@@ -119,4 +124,5 @@ api.add_resource(Users, '/users')
 api.add_resource(Login, '/login')
 api.add_resource(Logout, '/logout')
 api.add_resource(RefreshToken, '/refresh-token')
-api.add_resource(ConfirmUser, '/confirm-user/<int:user_id>')
+api.add_resource(ConfirmUser, '/confirm-user/<string:user_confirmation_id>')
+api.add_resource(ConfirmUserByUser, '/confirm-user-by-user/<int:user_id>')
