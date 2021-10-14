@@ -1,0 +1,13 @@
+{
+	"username_length": "Username must be between 1 and 80 characters long.",
+	"password_regex": "Password must contain at least one number, one uppercase and one lowercase character, one special symbol and be at least 8 characters long.",
+	"unique_value": "This field must be unique.",
+	"confirm_registration": "You have not confirmed registration. Please check your email.",
+	"logout_success": "Logout successful.",
+	"user_confirmation_not_found": "User confirmation reference not found.",
+	"link_expired": "The link has expired.",
+	"user_already_confirmed": "User has already been confirmed.",
+	"user_confirmation_successful": "User confirmation successful.",
+	"user_not_found": "User not found.",
+	"registration_confirmation_email_sent": "Registration confirmation email has been sent."
+}

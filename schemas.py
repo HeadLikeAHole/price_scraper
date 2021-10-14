@@ -3,19 +3,20 @@ from marshmallow.validate import And, Length, Email, Regexp
 from marshmallow import pre_dump
 
 from . import ma
-from .validation import CUSTOM_ERRORS, is_unique
+from .validation import is_unique
 from .models import User, UserConfirmation
+from .strings import get_text
 
 
 class UserSchema(ma.SQLAlchemyAutoSchema):
 	username = fields.Str(validate=And(
-		Length(min=1, max=80, error=CUSTOM_ERRORS['username']),
+		Length(min=1, max=80, error=get_text('username_length')),
 		is_unique('username')
 	))
 	email = fields.Str(validate=And(Email(), is_unique('email')))
 	password = fields.Str(validate=Regexp(
 		r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!#%*?&]{8,}$',
-		error=CUSTOM_ERRORS['password']
+		error=get_text('password_regex')
 	))
 
 	class Meta:

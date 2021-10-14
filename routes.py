@@ -12,6 +12,7 @@ from . import app, api, db, bcrypt
 from .validation import get_data_or_400
 from .models import User, BlockedToken, UserConfirmation
 from .schemas import UserSchema, LoginSchema
+from .strings import get_text
 
 
 @app.route('/')
@@ -58,7 +59,7 @@ class Login(Resource):
 
                 return {'access_token': access_token, 'refresh_token': refresh_token}
 
-            return {'error': 'You have not confirmed registration. Please check your email.'}, 400
+            return {'error': get_text('confirm_registration')}, 400
 
 
 class Logout(Resource):
@@ -69,7 +70,7 @@ class Logout(Resource):
         token = BlockedToken(jti=jti, created_at=now)
         db.session.add(token)
         db.session.commit()
-        return {'message': 'Logout successful'}
+        return {'message': get_text('logout_success')}
 
 
 class RefreshToken(Resource):
@@ -85,30 +86,30 @@ class ConfirmUser(Resource):
         user_confirmation = UserConfirmation.query.filter_by(id=user_confirmation_id).first()
 
         if not user_confirmation:
-            return {'message': 'Confirmation reference not found'}, 404
+            return {'message': get_text('user_confirmation_not_found')}, 404
 
         if user_confirmation.expired:
-            return {'message': 'The link has expired'}, 400
+            return {'message': get_text('link_expired')}, 400
 
         if user_confirmation.confirmed:
-            return {'message': 'Registration has already been confirmed'}, 400
+            return {'message': get_text('user_already_confirmed')}, 400
 
         user_confirmation.confirmed = True
         db.session.commit()
 
-        return {'message': 'User confirmation successful'}
+        return {'message': get_text('user_confirmation_successful')}
 
 
 class ConfirmUserByUser(Resource):
     def post(self, user_id):
         user = User.query.filter_by(id=user_id).first()
         if not user:
-            return {'message': 'User not found'}, 404
+            return {'message': get_text('user_not_found')}, 404
 
         user_confirmation = user.latest_confirmation()
         if user_confirmation:
             if user_confirmation.confirmed:
-                return {'message': 'User has already been confirmed'}, 400
+                return {'message': get_text('user_already_confirmed')}, 400
             user_confirmation.make_expired()
             db.session.commit()
 
@@ -117,7 +118,7 @@ class ConfirmUserByUser(Resource):
         db.session.commit()
         user.send_confirmation_email()
 
-        return {'message': 'Confirmation email has been sent'}, 201
+        return {'message': get_text('registration_confirmation_email_sent')}, 201
 
 
 api.add_resource(Users, '/users')

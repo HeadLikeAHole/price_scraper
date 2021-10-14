@@ -18,7 +18,7 @@ class User(db.Model):
 
     @property
     def latest_confirmation(self):
-        return self.user_confirmation.query.order_by(db.desc(UserConfirmation.expires_at)).first()
+        return self.user_confirmation.order_by(db.desc(UserConfirmation.expires_at)).first()
 
     def send_confirmation_email(self):
         # get url root "http://127.0.0.1:5000/" without the last character which is a slash
