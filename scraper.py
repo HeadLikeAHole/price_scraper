@@ -1,6 +1,5 @@
 import requests
 from bs4 import BeautifulSoup
-from models import User, Product
 
 
 def check_price(user_id=None, product_id=None):

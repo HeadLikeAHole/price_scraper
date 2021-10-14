@@ -25,7 +25,7 @@ class User(db.Model):
         link = request.url_root[:-1] + url_for('confirmuser', user_confirmation_id=self.latest_confirmation.id)
         send_email(
             'Registration confirmation',
-            f'Please click the link to confirm your registraition {link}',
+            f'Please click the link to confirm your registration {link}',
             self.email
         )
 
