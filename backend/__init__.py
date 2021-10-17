@@ -7,22 +7,25 @@ from flask_bcrypt import Bcrypt
 from flask_jwt_extended import JWTManager
 
 
+app = Flask(__name__, static_url_path='', static_folder='../frontend/build')
+app.config.from_object('backend.config')
+
 # Create api
-api = Api()
+api = Api(app)
 
 # Create database connection object
-db = SQLAlchemy()
+db = SQLAlchemy(app)
 
 # should go after db declaration
-ma = Marshmallow()
+ma = Marshmallow(app)
 
-migrate = Migrate()
+migrate = Migrate(app, db)
 
-bcrypt = Bcrypt()
+bcrypt = Bcrypt(app)
 
-from . import routes, models
+from backend import routes, models
 
-jwt = JWTManager()
+jwt = JWTManager(app)
 
 
 @jwt.token_in_blocklist_loader
@@ -30,22 +33,3 @@ def check_if_token_revoked(jwt_header, jwt_payload):
     jti = jwt_payload['jti']
     token = models.BlockedToken.query.filter_by(jti=jti).first()
     return token is not None
-
-
-def create_app(config):
-    app = Flask(__name__, static_url_path='', static_folder='../frontend/build')
-    app.config.from_pyfile(config)
-
-    api.init_app(app)
-
-    db.init_app(app)
-
-    ma.init_app(app)
-
-    migrate.init_app(app, db)
-
-    bcrypt.init_app(app)
-
-    jwt.init_app(app)
-
-    return app

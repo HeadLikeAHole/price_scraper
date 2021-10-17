@@ -1,4 +1,5 @@
 from datetime import datetime
+
 from flask import send_from_directory
 from flask_restful import Resource
 from flask_jwt_extended import (
@@ -8,11 +9,12 @@ from flask_jwt_extended import (
     jwt_required,
     get_jwt
 )
-from . import app, api, db, bcrypt
-from .validation import get_data_or_400
-from .models import User, BlockedToken, UserConfirmation
-from .schemas import UserSchema, LoginSchema
-from .strings import get_text
+
+from backend import app, api, db, bcrypt
+from backend.validation import get_data_or_400
+from backend.models import User, BlockedToken, RegistrationConfirmation
+from backend.schemas import UserSchema, LoginSchema
+from backend.translation import get_text as _
 
 
 @app.route('/')
@@ -32,8 +34,8 @@ class Users(Resource):
         db.session.add(user)
         db.session.commit()
 
-        user_confirmation = UserConfirmation(user.id)
-        db.session.add(user_confirmation)
+        registration_confirmation = RegistrationConfirmation(user.id)
+        db.session.add(registration_confirmation)
         db.session.commit()
 
         user.send_confirmation_email()
@@ -52,14 +54,14 @@ class Login(Resource):
 
         user = User.query.filter_by(username=username).first()
         if user and bcrypt.check_password_hash(user.password, password):
-            user_confirmation = user.latest_confirmation
-            if user_confirmation and user_confirmation.confirmed:
+            registration_confirmation = user.latest_confirmation
+            if registration_confirmation and registration_confirmation.confirmed:
                 access_token = create_access_token(identity=user.id, fresh=True)
                 refresh_token = create_refresh_token(user.id)
 
                 return {'access_token': access_token, 'refresh_token': refresh_token}
 
-            return {'error': get_text('confirm_registration')}, 400
+            return {'error': _('registration_not_confirmed')}, 400
 
 
 class Logout(Resource):
@@ -70,7 +72,7 @@ class Logout(Resource):
         token = BlockedToken(jti=jti, created_at=now)
         db.session.add(token)
         db.session.commit()
-        return {'message': get_text('logout_success')}
+        return {'message': _('logout_success')}
 
 
 class RefreshToken(Resource):
@@ -81,49 +83,49 @@ class RefreshToken(Resource):
         return {'access_token': access_token}
 
 
-class ConfirmUser(Resource):
-    def get(self, user_confirmation_id):
-        user_confirmation = UserConfirmation.query.filter_by(id=user_confirmation_id).first()
+class ConfirmRegistration(Resource):
+    def get(self, registration_confirmation_id):
+        registration_confirmation = RegistrationConfirmation.query.filter_by(id=registration_confirmation_id).first()
 
-        if not user_confirmation:
-            return {'message': get_text('user_confirmation_not_found')}, 404
+        if not registration_confirmation:
+            return {'message': _('registration_confirmation_not_found')}, 404
 
-        if user_confirmation.expired:
-            return {'message': get_text('link_expired')}, 400
+        if registration_confirmation.expired:
+            return {'message': _('link_expired')}, 400
 
-        if user_confirmation.confirmed:
-            return {'message': get_text('user_already_confirmed')}, 400
+        if registration_confirmation.confirmed:
+            return {'message': _('registration_already_confirmed')}, 400
 
-        user_confirmation.confirmed = True
+        registration_confirmation.confirmed = True
         db.session.commit()
 
-        return {'message': get_text('user_confirmation_successful')}
+        return {'message': _('registration_confirmation_success')}
 
 
-class ConfirmUserByUser(Resource):
+class ConfirmRegistrationByUser(Resource):
     def post(self, user_id):
         user = User.query.filter_by(id=user_id).first()
         if not user:
-            return {'message': get_text('user_not_found')}, 404
+            return {'message': _('user_not_found')}, 404
 
-        user_confirmation = user.latest_confirmation()
-        if user_confirmation:
-            if user_confirmation.confirmed:
-                return {'message': get_text('user_already_confirmed')}, 400
-            user_confirmation.make_expired()
+        registration_confirmation = user.latest_confirmation()
+        if registration_confirmation:
+            if registration_confirmation.confirmed:
+                return {'message': _('registration_already_confirmed')}, 400
+            registration_confirmation.make_expired()
             db.session.commit()
 
-        new_confirmation = UserConfirmation(user_id)
+        new_confirmation = RegistrationConfirmation(user_id)
         db.session.add(new_confirmation)
         db.session.commit()
         user.send_confirmation_email()
 
-        return {'message': get_text('registration_confirmation_email_sent')}, 201
+        return {'message': _('registration_confirmation_email_sent')}, 201
 
 
 api.add_resource(Users, '/users')
 api.add_resource(Login, '/login')
 api.add_resource(Logout, '/logout')
 api.add_resource(RefreshToken, '/refresh-token')
-api.add_resource(ConfirmUser, '/confirm-user/<string:user_confirmation_id>')
-api.add_resource(ConfirmUserByUser, '/confirm-user-by-user/<int:user_id>')
+api.add_resource(ConfirmRegistration, '/confirm-registration/<string:registration_confirmation_id>')
+api.add_resource(ConfirmRegistrationByUser, '/confirm-registration-by-user/<int:user_id>')

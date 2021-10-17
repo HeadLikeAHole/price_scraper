@@ -3,7 +3,7 @@ import os
 
 SQLALCHEMY_DATABASE_URI = os.environ.get('DB_URI')
 
-# stop showing FSADeprecationWarning in the terminal
+# remove FSADeprecationWarning from terminal
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 # show more detailed errors

@@ -3,8 +3,8 @@ from time import time
 
 from flask import request, url_for
 
-from . import db
-from .utils import send_email
+from backend import db
+from backend.utils import send_email
 
 
 class User(db.Model):
@@ -14,15 +14,22 @@ class User(db.Model):
     password = db.Column(db.String(60), nullable=False)
     # is_superuser = db.Column(db.Boolean, nullable=False, default=False)
     # products = db.relationship('Product', backref='user', lazy=True)
-    user_confirmation = db.relationship('UserConfirmation', lazy=True, cascade='all, delete-orphan')
+    registration_confirmation = db.relationship(
+        'RegistrationConfirmation',
+        lazy='dynamic',
+        cascade='all, delete-orphan'
+    )
 
     @property
     def latest_confirmation(self):
-        return self.user_confirmation.order_by(db.desc(UserConfirmation.expires_at)).first()
+        return self.registration_confirmation.order_by(db.desc(RegistrationConfirmation.expires_at)).first()
 
     def send_confirmation_email(self):
         # get url root "http://127.0.0.1:5000/" without the last character which is a slash
-        link = request.url_root[:-1] + url_for('confirmuser', user_confirmation_id=self.latest_confirmation.id)
+        link = request.url_root[:-1] + url_for(
+            'confirmregistration',
+            registration_confirmation_id=self.latest_confirmation.id
+        )
         send_email(
             'Registration confirmation',
             f'Please click the link to confirm your registration {link}',
@@ -39,7 +46,7 @@ class BlockedToken(db.Model):
     created_at = db.Column(db.DateTime, nullable=False)
 
 
-class UserConfirmation(db.Model):
+class RegistrationConfirmation(db.Model):
     id = db.Column(db.String(50), primary_key=True)
     expires_at = db.Column(db.Integer, nullable=False)
     confirmed = db.Column(db.Boolean, nullable=False, default=False)

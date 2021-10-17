@@ -6,7 +6,7 @@ cached_strings = {}
 
 
 def refresh():
-	with open(f'strings/{default_locale}.json') as file:
+	with open(f'backend/locales/{default_locale}.json') as file:
 		global cached_strings
 		cached_strings = json.load(file)
 
