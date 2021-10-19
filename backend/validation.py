@@ -18,5 +18,5 @@ def is_unique(name):
         kwargs = {name: value}
 
         if User.query.filter_by(**kwargs).first():
-            raise ValidationError(_('not_unique'))
+            raise ValidationError(_('not_unique').format(name.capitalize()))
     return validator
