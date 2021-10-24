@@ -1,6 +1,7 @@
 from marshmallow import fields
 from marshmallow.validate import And, Length, Email, Regexp
 from marshmallow import pre_dump
+from werkzeug.datastructures import FileStorage
 
 from backend import ma
 from backend.validation import is_unique
@@ -46,3 +47,23 @@ class RegistrationConfirmationSchema(ma.SQLAlchemyAutoSchema):
 		include_fk = True
 		load_only = ('user',)
 		dump_only = ('id', 'expires_at', 'confirmed')
+
+
+# custom field
+class FileStorageField(fields.Field):
+	default_error_messages = {
+		'invalid': 'not a valid image.'
+	}
+
+	def _deserialize(self, value, attr, data, **kwargs):
+		if value is None:
+			return None
+
+		if not isinstance(value, FileStorage):
+			self.fail('invalid')
+
+		return value
+
+
+class ImageSchema(ma.Schema):
+	image = FileStorageField(required=True)

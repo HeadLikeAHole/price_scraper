@@ -10,3 +10,5 @@ SQLALCHEMY_TRACK_MODIFICATIONS = False
 PROPAGATE_EXCEPTIONS = True
 
 JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY')
+
+UPLOADED_IMAGES_DEST = os.path.join('backend/static', 'images')

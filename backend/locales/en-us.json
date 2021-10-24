@@ -9,5 +9,12 @@
 	"registration_already_confirmed": "Registration has already been confirmed.",
 	"registration_confirmation_success": "Registration confirmation has been successful.",
 	"user_not_found": "User not found.",
-	"registration_confirmation_email_sent": "Registration confirmation email has been sent."
+	"registration_confirmation_email_sent": "Registration confirmation email has been sent.",
+	"image_uploaded": "Image '{}' has successfully been uploaded.",
+	"invalid_image_ext": "Image extension '{}' is not allowed.",
+	"image_not_found": "Image '{}' not found.",
+	"image_deleted": "Image '{}' has successfully been deleted.",
+	"image_delete_failed": "Server error. Image '{}' could not be deleted.",
+	"avatar_delete_failed": "Server error. Avatar could not be deleted.",
+	"avatar_not_found": "Avatar not found."
 }
