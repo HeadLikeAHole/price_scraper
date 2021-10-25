@@ -6,7 +6,7 @@ from flask_migrate import Migrate
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import JWTManager
 
-from oauth import oauth
+from backend.oauth import oauth
 
 
 app = Flask(__name__, static_url_path='', static_folder='../frontend/build')

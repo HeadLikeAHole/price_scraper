@@ -7,16 +7,14 @@ oauth = OAuth()
 
 vk_oauth = oauth.remote_app(
 	'vk',
-	consumer_key = os.environ.get('VK_CLIENT_ID'),
-	consumer_secret = os.environ.get('VK_CLIENT_SECRET'),
+	consumer_key=os.environ.get('VK_APP_ID'),
+	consumer_secret=os.environ.get('VK_SECURE_KEY'),
 	base_url='https://oauth.vk.com',
-	access_token='https://oauth.vk.com/access_token',
-	authorize_url= 'https://oauth.vk.com/authorize',
-	request_token_params = {'scope': 'email'},
-	request_token_url= None
+	access_token_url='https://oauth.vk.com/access_token',
+	authorize_url='https://oauth.vk.com/authorize',
+	request_token_params={'scope': 'email'},
+	request_token_url=None
 )
-
-
 
 
 # app = Flask(__name__, static_folder='static', static_url_path='static')

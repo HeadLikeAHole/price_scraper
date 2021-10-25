@@ -15,6 +15,7 @@ from backend.validation import get_data_or_400
 from backend.models import User, BlockedToken, RegistrationConfirmation
 from backend.schemas import UserSchema, LoginSchema
 from backend.translation import get_text as _
+from backend.oauth import vk_oauth
 
 
 @app.route('/')
@@ -123,9 +124,15 @@ class ConfirmRegistrationByUser(Resource):
         return {'message': _('registration_confirmation_email_sent')}, 201
 
 
+class VKLogin(Resource):
+    def get(self):
+        return vk_oauth.authorize(callback='http://127.0.0.1:5000/login/vk/authorized')
+
+
 api.add_resource(Users, '/users')
 api.add_resource(Login, '/login')
 api.add_resource(Logout, '/logout')
 api.add_resource(RefreshToken, '/refresh-token')
 api.add_resource(ConfirmRegistration, '/confirm-registration/<string:registration_confirmation_id>')
 api.add_resource(ConfirmRegistrationByUser, '/confirm-registration-by-user/<int:user_id>')
+api.add_resource(VKLogin, '/login/vk')
