@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from flask import send_from_directory
+from flask import send_from_directory, g
 from flask_restful import Resource
 from flask_jwt_extended import (
     create_access_token,
@@ -129,6 +129,29 @@ class VKLogin(Resource):
         return vk_oauth.authorize(callback='http://127.0.0.1:5000/login/vk/authorized')
 
 
+class VKAuthorize(Resource):
+    def get(self):
+        resp = vk_oauth.authorized_response()
+        use_id = resp['user_id']
+        
+        # get user info
+        # g.access_token = resp['access_token']
+        # vk_user = vk_oauth.get('users.get?v=5.131')
+        # vk_user_id = vk_user.data['response'][0]['id']
+
+        user = User.query.filter_by(username=user_id).first()
+
+        if not user:
+            user = User(username=user_id, email=None, password=None)
+            db.session.add(user)
+            db.session.commit()
+
+            access_token = create_access_token(identity=user.id, fresh=True)
+            refresh_token = create_refresh_token(user.id)
+
+            return {'access_token': access_token, 'refresh_token': refresh_token}
+
+
 api.add_resource(Users, '/users')
 api.add_resource(Login, '/login')
 api.add_resource(Logout, '/logout')
@@ -136,3 +159,4 @@ api.add_resource(RefreshToken, '/refresh-token')
 api.add_resource(ConfirmRegistration, '/confirm-registration/<string:registration_confirmation_id>')
 api.add_resource(ConfirmRegistrationByUser, '/confirm-registration-by-user/<int:user_id>')
 api.add_resource(VKLogin, '/login/vk')
+api.add_resource(VKAuthorize, '/login/vk/authorized')
