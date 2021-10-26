@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from flask import send_from_directory, g
+from flask import send_from_directory, g, request, url_for
 from flask_restful import Resource
 from flask_jwt_extended import (
     create_access_token,
@@ -24,7 +24,8 @@ def index():
 
 
 class Users(Resource):
-    def post(self):
+    @staticmethod
+    def post():
         user_schema = UserSchema()
 
         user = get_data_or_400(user_schema)
@@ -45,7 +46,8 @@ class Users(Resource):
 
 
 class Login(Resource):
-    def post(self):
+    @staticmethod
+    def post():
         login_schema = LoginSchema()
 
         data = get_data_or_400(login_schema)
@@ -66,8 +68,9 @@ class Login(Resource):
 
 
 class Logout(Resource):
+    @staticmethod
     @jwt_required()
-    def post(self):
+    def post():
         jti = get_jwt()['jti']
         now = datetime.now()
         token = BlockedToken(jti=jti, created_at=now)
@@ -77,15 +80,17 @@ class Logout(Resource):
 
 
 class RefreshToken(Resource):
+    @staticmethod
     @jwt_required(refresh=True)
-    def post(self):
+    def post():
         identity = get_jwt_identity()
         access_token = create_access_token(identity=identity, fresh=False)
         return {'access_token': access_token}
 
 
 class ConfirmRegistration(Resource):
-    def get(self, registration_confirmation_id):
+    @staticmethod
+    def get(registration_confirmation_id):
         registration_confirmation = RegistrationConfirmation.query.filter_by(id=registration_confirmation_id).first()
 
         if not registration_confirmation:
@@ -104,7 +109,8 @@ class ConfirmRegistration(Resource):
 
 
 class ConfirmRegistrationByUser(Resource):
-    def post(self, user_id):
+    @staticmethod
+    def post(user_id):
         user = User.query.filter_by(id=user_id).first()
         if not user:
             return {'message': _('user_not_found')}, 404
@@ -124,15 +130,45 @@ class ConfirmRegistrationByUser(Resource):
         return {'message': _('registration_confirmation_email_sent')}, 201
 
 
+class SetNewPassword(Resource):
+    @staticmethod
+    @jwt_required(fresh=True)
+    def post():
+        login_schema = LoginSchema()
+
+        data = get_data_or_400(login_schema)
+
+        username = data['username']
+        password = data['password']
+
+        user = User.query.filter_by(username=username).first()
+        if user:
+            user.password = bcrypt.generate_password_hash(password).decode('utf-8')
+            db.session.commit()
+            return {'message': _('password_updated')}, 201
+
+        return {'error': _('user_not_found')}, 404
+
+
 class VKLogin(Resource):
-    def get(self):
-        return vk_oauth.authorize(callback='http://127.0.0.1:5000/login/vk/authorized')
+    @staticmethod
+    def get():
+        return vk_oauth.authorize(callback=url_for('vkauthorize', _external=True))
 
 
 class VKAuthorize(Resource):
-    def get(self):
+    @staticmethod
+    def get():
         resp = vk_oauth.authorized_response()
-        use_id = resp['user_id']
+
+        if resp is None or resp['user_id'] is None:
+            error_response = {
+                'error': request.args['error'],
+                'error_description': request.args['error_description']
+            }
+            return error_response
+
+        user_id = str(resp['user_id'])
         
         # get user info
         # g.access_token = resp['access_token']
@@ -142,7 +178,7 @@ class VKAuthorize(Resource):
         user = User.query.filter_by(username=user_id).first()
 
         if not user:
-            user = User(username=user_id, email=None, password=None)
+            user = User(username=user_id)
             db.session.add(user)
             db.session.commit()
 
@@ -158,5 +194,6 @@ api.add_resource(Logout, '/logout')
 api.add_resource(RefreshToken, '/refresh-token')
 api.add_resource(ConfirmRegistration, '/confirm-registration/<string:registration_confirmation_id>')
 api.add_resource(ConfirmRegistrationByUser, '/confirm-registration-by-user/<int:user_id>')
+api.add_resource(SetNewPassword, '/set-new-password')
 api.add_resource(VKLogin, '/login/vk')
 api.add_resource(VKAuthorize, '/login/vk/authorized')

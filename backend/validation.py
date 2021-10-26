@@ -1,3 +1,5 @@
+import re
+
 from flask import request
 from flask_restful import abort
 from marshmallow import ValidationError
@@ -6,9 +8,9 @@ from backend.models import User
 from backend.translation import get_text as _
 
 
-def get_data_or_400(schema):
+def get_data_or_400(schema, **kwargs):
     try:
-        return schema.load(request.get_json())
+        return schema.load(request.get_json(), **kwargs)
     except ValidationError as err:
         abort(400, errors=err.messages)
 
@@ -20,3 +22,8 @@ def is_unique(name):
         if User.query.filter_by(**kwargs).first():
             raise ValidationError(_('not_unique').format(name.capitalize()))
     return validator
+
+
+def not_vk_username(value):
+    if re.search(r'^vk_\d+', value):
+        raise ValidationError(_('username_not_allowed'))
