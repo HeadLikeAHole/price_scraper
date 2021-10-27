@@ -2,7 +2,7 @@ from datetime import datetime
 import os
 import traceback
 
-from flask import send_from_directory, request, send_file
+from flask import send_from_directory, send_file, request, g, url_for
 from flask_restful import Resource
 from flask_jwt_extended import (
     create_access_token,
@@ -26,6 +26,7 @@ from backend.image_fns import (
     get_path,
     find_image_any_format
 )
+from backend.oauth import vk_oauth
 
 
 @app.route('/')
@@ -34,7 +35,8 @@ def index():
 
 
 class Users(Resource):
-    def post(self):
+    @staticmethod
+    def post():
         user_schema = UserSchema()
 
         user = get_data_or_400(user_schema)
@@ -55,7 +57,8 @@ class Users(Resource):
 
 
 class Login(Resource):
-    def post(self):
+    @staticmethod
+    def post():
         login_schema = LoginSchema()
 
         data = get_data_or_400(login_schema)
@@ -76,8 +79,9 @@ class Login(Resource):
 
 
 class Logout(Resource):
+    @staticmethod
     @jwt_required()
-    def post(self):
+    def post():
         jti = get_jwt()['jti']
         now = datetime.now()
         token = BlockedToken(jti=jti, created_at=now)
@@ -87,15 +91,17 @@ class Logout(Resource):
 
 
 class RefreshToken(Resource):
+    @staticmethod
     @jwt_required(refresh=True)
-    def post(self):
+    def post():
         identity = get_jwt_identity()
         access_token = create_access_token(identity=identity, fresh=False)
         return {'access_token': access_token}
 
 
 class ConfirmRegistration(Resource):
-    def get(self, registration_confirmation_id):
+    @staticmethod
+    def get(registration_confirmation_id):
         registration_confirmation = RegistrationConfirmation.query.filter_by(id=registration_confirmation_id).first()
 
         if not registration_confirmation:
@@ -114,7 +120,8 @@ class ConfirmRegistration(Resource):
 
 
 class ConfirmRegistrationByUser(Resource):
-    def post(self, user_id):
+    @staticmethod
+    def post(user_id):
         user = User.query.filter_by(id=user_id).first()
         if not user:
             return {'message': _('user_not_found')}, 404
@@ -223,6 +230,64 @@ class Avatar(Resource):
         return {'message': _('avatar_not_found')}, 404
 
 
+class SetNewPassword(Resource):
+    @staticmethod
+    @jwt_required(fresh=True)
+    def post():
+        login_schema = LoginSchema()
+
+        data = get_data_or_400(login_schema)
+
+        username = data['username']
+        password = data['password']
+
+        user = User.query.filter_by(username=username).first()
+        if user:
+            user.password = bcrypt.generate_password_hash(password).decode('utf-8')
+            db.session.commit()
+            return {'message': _('password_updated')}, 201
+
+        return {'error': _('user_not_found')}, 404
+
+
+class VKLogin(Resource):
+    @staticmethod
+    def get():
+        return vk_oauth.authorize(callback=url_for('vkauthorize', _external=True))
+
+
+class VKAuthorize(Resource):
+    @staticmethod
+    def get():
+        resp = vk_oauth.authorized_response()
+
+        if resp is None or resp['user_id'] is None:
+            error_response = {
+                'error': request.args['error'],
+                'error_description': request.args['error_description']
+            }
+            return error_response
+
+        user_id = str(resp['user_id'])
+        
+        # get user info
+        # g.access_token = resp['access_token']
+        # vk_user = vk_oauth.get('users.get?v=5.131')
+        # vk_user_id = vk_user.data['response'][0]['id']
+
+        user = User.query.filter_by(username=user_id).first()
+
+        if not user:
+            user = User(username=user_id)
+            db.session.add(user)
+            db.session.commit()
+
+            access_token = create_access_token(identity=user.id, fresh=True)
+            refresh_token = create_refresh_token(user.id)
+
+            return {'access_token': access_token, 'refresh_token': refresh_token}
+
+
 api.add_resource(Users, '/users')
 api.add_resource(Login, '/login')
 api.add_resource(Logout, '/logout')
@@ -233,3 +298,6 @@ api.add_resource(ImageUpload, '/upload/image')
 api.add_resource(Image, '/image/<string:filename>')
 api.add_resource(AvatarUpload, '/upload/avatar')
 api.add_resource(Avatar, '/avatar/<int:user_id>')
+api.add_resource(SetNewPassword, '/set-new-password')
+api.add_resource(VKLogin, '/login/vk')
+api.add_resource(VKAuthorize, '/login/vk/authorized')

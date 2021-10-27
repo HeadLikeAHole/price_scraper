@@ -10,6 +10,7 @@ from flask_jwt_extended import JWTManager
 from flask_uploads import configure_uploads, patch_request_class
 
 from backend.image_fns import IMAGE_SET
+from backend.oauth import oauth
 
 # without this path '.../price_scraper' specified as 'root_path'
 # 'send_file' function can't locate static files when it receives absolute path as argument
@@ -43,6 +44,8 @@ ma = Marshmallow(app)
 migrate = Migrate(app, db)
 
 bcrypt = Bcrypt(app)
+
+oauth.init_app(app)
 
 from backend import routes, models
 

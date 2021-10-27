@@ -37,16 +37,10 @@ class UserSchema(ma.SQLAlchemyAutoSchema):
 
 class LoginSchema(ma.Schema):
 	username = fields.Str()
-	password = fields.Str()
-
-
-class RegistrationConfirmationSchema(ma.SQLAlchemyAutoSchema):
-	class Meta:
-		model = RegistrationConfirmation
-		load_instance = True
-		include_fk = True
-		load_only = ('user',)
-		dump_only = ('id', 'expires_at', 'confirmed')
+	password = fields.Str(validate=Regexp(
+		r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!#%*?&]{8,}$',
+		error=_('invalid_password')
+	))
 
 
 # custom field
