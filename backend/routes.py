@@ -15,7 +15,7 @@ from flask_uploads import UploadNotAllowed
 
 from backend import app, api, db, bcrypt
 from backend.validation import get_data_or_400
-from backend.models import User, BlockedToken, RegistrationConfirmation
+from backend.models import User, BlockedToken, RegistrationConfirmation, Product, Order
 from backend.schemas import UserSchema, LoginSchema, ImageSchema
 from backend.translation import get_text as _
 from backend.image_fns import (
@@ -288,6 +288,25 @@ class VKAuthorize(Resource):
             return {'access_token': access_token, 'refresh_token': refresh_token}
 
 
+class MakeOrder(Resource):
+    @staticmethod
+    def post():
+        data = request.get_json()
+        products = []
+
+        # iterate over products an retrieve them from the database
+        for _id in data['product_ids']:
+            product = Product.query.filter_by(id=_id)
+            if not product:
+                return {'message': _('product_not_found').format(_id)}, 404
+
+            products.append(product)
+
+        # order = Order(products=products, status='pending')
+        # db.session.add(order)
+        # db.session.commit()
+
+
 api.add_resource(Users, '/users')
 api.add_resource(Login, '/login')
 api.add_resource(Logout, '/logout')
@@ -301,3 +320,4 @@ api.add_resource(Avatar, '/avatar/<int:user_id>')
 api.add_resource(SetNewPassword, '/set-new-password')
 api.add_resource(VKLogin, '/login/vk')
 api.add_resource(VKAuthorize, '/login/vk/authorized')
+api.add_resource(MakeOrder, '/make-order')

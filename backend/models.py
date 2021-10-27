@@ -66,17 +66,21 @@ class RegistrationConfirmation(db.Model):
             self.expires_at = int(time())
 
 
-# class Product(db.Model):
-#     id = db.Column(db.Integer, primary_key=True)
-#     link = db.Column(db.Text, nullable=False)
-#     title = db.Column(db.Text)
-#     current_price = db.Column(db.Boolean)
-#     desired_price = db.Column(db.Boolean)
-#     is_monitored = db.Column(db.Boolean, nullable=False, default=True)
-#     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-#     store_id = db.Column(db.Integer, db.ForeignKey('store.id'), nullable=False)
-#
-#
+class Product(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    link = db.Column(db.Text, nullable=False)
+    title = db.Column(db.Text)
+    current_price = db.Column(db.Integer)
+    desired_price = db.Column(db.Integer)
+    is_monitored = db.Column(db.Boolean, nullable=False, default=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    # store_id = db.Column(db.Integer, db.ForeignKey('store.id'), nullable=False)
+
+
+class Order(db.Model):
+    pass
+
+
 # # online store
 # class Store(db.Model):
 #     id = db.Column(db.Integer, primary_key=True)
