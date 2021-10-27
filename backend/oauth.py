@@ -19,7 +19,7 @@ vk_oauth = oauth.remote_app(
 )
 
 
-@vk_oauth.tokengetter
-def get_vk_oauth_token():	
-	if 'access_token' in g:
-		return g.access_token
+# @vk_oauth.tokengetter
+# def get_vk_oauth_token():	
+# 	if 'access_token' in g:
+# 		return g.access_token

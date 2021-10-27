@@ -24,6 +24,6 @@ def is_unique(name):
     return validator
 
 
-def not_vk_username(value):
-    if re.search(r'^vk_\d+', value):
-        raise ValidationError(_('username_not_allowed'))
+# def not_vk_username(value):
+#     if re.search(r'^vk_\d+', value):
+#         raise ValidationError(_('username_not_allowed'))

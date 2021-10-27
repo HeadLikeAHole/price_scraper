@@ -2,6 +2,7 @@
 	"invalid_username": "Username must be between 1 and 80 characters long.",
 	"invalid_password": "Password must contain at least one number, one uppercase and one lowercase character, one special symbol and be at least 8 characters long.",
 	"not_unique": "{} must be unique.",
+	"username_not_allowed": "Username is not allowed. Choose a different one.",
 	"registration_not_confirmed": "You have not confirmed registration. Please check your email.",
 	"logout_success": "You have successfully logged out.",
 	"registration_confirmation_not_found": "Registration confirmation reference not found.",
