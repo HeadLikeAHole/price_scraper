@@ -312,7 +312,7 @@ class MakeOrder(Resource):
         db.session.commit()
 
         order.set_status('failed')
-        order.charge_with_stripe(data['token'])
+        order.charge_with_stripe()
         order.set_status('complete')
 
         return order_schema.dump(order)

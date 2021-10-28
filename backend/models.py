@@ -108,9 +108,31 @@ class Order(db.Model):
         self.status = new_status
         db.session.commit()
 
+    @property
+    def amount(self):
+        # multiplication by 100 (conversion to cents) should be done before
+        # converting to integer so sum doesn't get rounded down
+        return int(sum([i.product.current_price * i.quantity for i in self.ordered_products]) * 100)
 
-    def charge_with_stripe(self, token):
-        stripe.api = os.environ.get('STRIPE_API_KEY')
+    @property
+    def description(self):
+        product_counts = [f'{i.quantity}x {i.product.title}' for i in self.ordered_products]
+        return ', '.join(product_counts)
+
+    def charge_with_stripe(self):
+        # api_key must be a test one "sk_test_..." and not a live one "sk_live_..." when testing
+        stripe.api_key = os.environ.get('STRIPE_API_KEY')
+
+        # generate token for test purposes
+        # token is generated on the client side in a live app
+        token = stripe.Token.create(
+            card={
+                "number": "4242424242424242",
+                "exp_month": 10,
+                "exp_year": 2022,
+                "cvc": "314",
+            },
+        )
         
         return stripe.Charge.create(
             amount=self.amount,  # in cents

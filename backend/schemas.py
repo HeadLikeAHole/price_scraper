@@ -63,8 +63,9 @@ class ImageSchema(ma.Schema):
 	image = FileStorageField(required=True)
 
 
-class OrderSchema(ma.Schema):
+class OrderSchema(ma.SQLAlchemyAutoSchema):
 	class Meta:
 		model = Order
+		load_instance = True
 		load_only = ('token',)
 		dump_only = ('id', 'status')
