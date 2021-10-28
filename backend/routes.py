@@ -1,3 +1,4 @@
+from collections import Counter
 from datetime import datetime
 import os
 import traceback
@@ -15,8 +16,8 @@ from flask_uploads import UploadNotAllowed
 
 from backend import app, api, db, bcrypt
 from backend.validation import get_data_or_400
-from backend.models import User, BlockedToken, RegistrationConfirmation, Product, Order
-from backend.schemas import UserSchema, LoginSchema, ImageSchema
+from backend.models import User, BlockedToken, RegistrationConfirmation, Product, OrderedProduct, Order
+from backend.schemas import UserSchema, LoginSchema, ImageSchema, OrderSchema
 from backend.translation import get_text as _
 from backend.image_fns import (
     save_image,
@@ -288,23 +289,33 @@ class VKAuthorize(Resource):
             return {'access_token': access_token, 'refresh_token': refresh_token}
 
 
+order_schema = OrderSchema()
+
+
 class MakeOrder(Resource):
     @staticmethod
     def post():
         data = request.get_json()
-        products = []
+        ordered_products = []
+        product_id_quantities = Counter(data['product_ids'])
 
-        # iterate over products an retrieve them from the database
-        for _id in data['product_ids']:
+        # "most_common" method converts [1, 1, 2, 3, 5, 5, 5] to [(5, 3), (1, 2), (3, 1), (2, 1)]
+        for _id, count in product_id_quantities.most_common():
             product = Product.query.filter_by(id=_id)
             if not product:
                 return {'message': _('product_not_found').format(_id)}, 404
 
-            products.append(product)
+            ordered_products.append(OrderedProduct(product_id=_id, quantity=count))
 
-        # order = Order(products=products, status='pending')
-        # db.session.add(order)
-        # db.session.commit()
+        order = Order(ordered_products=ordered_products, status='pending')
+        db.session.add(order)
+        db.session.commit()
+
+        order.set_status('failed')
+        order.charge_with_stripe(data['token'])
+        order.set_status('complete')
+
+        return order_schema.dump(order)
 
 
 api.add_resource(Users, '/users')

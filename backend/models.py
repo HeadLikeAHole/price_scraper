@@ -1,10 +1,22 @@
-from uuid import uuid4
+import os
 from time import time
+from uuid import uuid4
 
 from flask import request, url_for
+import stripe
 
 from backend import db
 from backend.utils import send_email
+
+
+CURRENCY = 'usd'
+
+
+# products_orders = db.Table(
+#     'products_orders',
+#     db.Column('product_id', db.Integer, db.ForeignKey('product.id')),
+#     db.Column('order_id', db.Integer, db.ForeignKey('order.id')),
+# )
 
 
 class User(db.Model):
@@ -77,9 +89,35 @@ class Product(db.Model):
     # store_id = db.Column(db.Integer, db.ForeignKey('store.id'), nullable=False)
 
 
-class Order(db.Model):
-    pass
+class OrderedProduct(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)
+    order_id = db.Column(db.Integer, db.ForeignKey('order.id'), nullable=False)    
+    quantity = db.Column(db.Integer)
+    product = db.relationship('Product')
+    order = db.relationship('Order', back_populates='ordered_products')
 
+
+class Order(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    status = db.Column(db.String(20), nullable=False)
+    # products = db.relationship('Product', secondary=products_orders, lazy='dynamic')
+    ordered_products = db.relationship('OrderedProduct', back_populates='order')
+
+    def set_status(self, new_status):
+        self.status = new_status
+        db.session.commit()
+
+
+    def charge_with_stripe(self, token):
+        stripe.api = os.environ.get('STRIPE_API_KEY')
+        
+        return stripe.Charge.create(
+            amount=self.amount,  # in cents
+            currency=CURRENCY,
+            description=self.description,
+            source=token
+        )
 
 # # online store
 # class Store(db.Model):

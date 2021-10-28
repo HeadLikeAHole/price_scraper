@@ -5,7 +5,7 @@ from werkzeug.datastructures import FileStorage
 
 from backend import ma
 from backend.validation import is_unique
-from backend.models import User, RegistrationConfirmation
+from backend.models import User, RegistrationConfirmation, Order
 from backend.translation import get_text as _
 
 
@@ -61,3 +61,10 @@ class FileStorageField(fields.Field):
 
 class ImageSchema(ma.Schema):
 	image = FileStorageField(required=True)
+
+
+class OrderSchema(ma.Schema):
+	class Meta:
+		model = Order
+		load_only = ('token',)
+		dump_only = ('id', 'status')
