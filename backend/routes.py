@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from flask import send_from_directory, g, request, url_for
+from flask import send_from_directory
 from flask_restful import Resource
 from flask_jwt_extended import (
     create_access_token,
@@ -15,7 +15,6 @@ from backend.validation import get_data_or_400
 from backend.models import User, BlockedToken, RegistrationConfirmation
 from backend.schemas import UserSchema, LoginSchema
 from backend.translation import get_text as _
-from backend.oauth import vk_oauth
 
 
 @app.route('/')
@@ -150,44 +149,6 @@ class SetNewPassword(Resource):
         return {'error': _('user_not_found')}, 404
 
 
-class VKLogin(Resource):
-    @staticmethod
-    def get():
-        return vk_oauth.authorize(callback=url_for('vkauthorize', _external=True))
-
-
-class VKAuthorize(Resource):
-    @staticmethod
-    def get():
-        resp = vk_oauth.authorized_response()
-
-        if resp is None or resp['user_id'] is None:
-            error_response = {
-                'error': request.args['error'],
-                'error_description': request.args['error_description']
-            }
-            return error_response
-
-        user_id = str(resp['user_id'])
-        
-        # get user info
-        # g.access_token = resp['access_token']
-        # vk_user = vk_oauth.get('users.get?v=5.131')
-        # vk_user_id = vk_user.data['response'][0]['id']
-
-        user = User.query.filter_by(username=user_id).first()
-
-        if not user:
-            user = User(username=user_id)
-            db.session.add(user)
-            db.session.commit()
-
-            access_token = create_access_token(identity=user.id, fresh=True)
-            refresh_token = create_refresh_token(user.id)
-
-            return {'access_token': access_token, 'refresh_token': refresh_token}
-
-
 api.add_resource(Users, '/users')
 api.add_resource(Login, '/login')
 api.add_resource(Logout, '/logout')
@@ -195,5 +156,3 @@ api.add_resource(RefreshToken, '/refresh-token')
 api.add_resource(ConfirmRegistration, '/confirm-registration/<string:registration_confirmation_id>')
 api.add_resource(ConfirmRegistrationByUser, '/confirm-registration-by-user/<int:user_id>')
 api.add_resource(SetNewPassword, '/set-new-password')
-api.add_resource(VKLogin, '/login/vk')
-api.add_resource(VKAuthorize, '/login/vk/authorized')

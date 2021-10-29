@@ -22,8 +22,3 @@ def is_unique(name):
         if User.query.filter_by(**kwargs).first():
             raise ValidationError(_('not_unique').format(name.capitalize()))
     return validator
-
-
-# def not_vk_username(value):
-#     if re.search(r'^vk_\d+', value):
-#         raise ValidationError(_('username_not_allowed'))
