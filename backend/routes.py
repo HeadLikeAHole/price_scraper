@@ -13,6 +13,7 @@ from flask_jwt_extended import (
     get_jwt
 )
 from flask_uploads import UploadNotAllowed
+import stripe
 
 from backend import app, api, db, bcrypt
 from backend.validation import get_data_or_400
@@ -292,7 +293,11 @@ class VKAuthorize(Resource):
 order_schema = OrderSchema()
 
 
-class MakeOrder(Resource):
+class OrderRoute(Resource):
+    @staticmethod
+    def get():
+        return order_schema.dump(Order.query.all(), many=True)
+
     @staticmethod
     def post():
         data = request.get_json()
@@ -311,12 +316,40 @@ class MakeOrder(Resource):
         db.session.add(order)
         db.session.commit()
 
-        order.set_status('failed')
-        order.charge_with_stripe()
-        order.set_status('complete')
+        try:
+            order.set_status('failed')
+            order.charge_with_stripe()
+            order.set_status('complete')
 
-        return order_schema.dump(order)
-
+            return order_schema.dump(order)
+        except stripe.error.CardError as e:
+            # Since it's a decline, stripe.error.CardError will be caught
+            print('Status is: %s' % e.http_status)
+            print('Code is: %s' % e.code)
+            # param is '' in this case
+            print('Param is: %s' % e.param)
+            print('Message is: %s' % e.user_message)
+            return e.json_body, e.http_status
+        except stripe.error.RateLimitError as e:
+            # Too many requests made to the API too quickly
+            return e.json_body, e.http_status
+        except stripe.error.InvalidRequestError as e:
+            # Invalid parameters were supplied to Stripe's API
+            return e.json_body, e.http_status
+        except stripe.error.AuthenticationError as e:
+            # Authentication with Stripe's API failed
+            # (maybe you changed API keys recently)
+            return e.json_body, e.http_status
+        except stripe.error.APIConnectionError as e:
+            # Network communication with Stripe failed
+            return e.json_body, e.http_status
+        except stripe.error.StripeError as e:
+            # Display a very generic error to the user, and maybe send
+            # yourself an email
+            return e.json_body, e.http_status
+        except Exception as e:
+            # Something else happened, completely unrelated to Stripe
+            return {'message': _('order_error')}, 500
 
 api.add_resource(Users, '/users')
 api.add_resource(Login, '/login')
@@ -331,4 +364,4 @@ api.add_resource(Avatar, '/avatar/<int:user_id>')
 api.add_resource(SetNewPassword, '/set-new-password')
 api.add_resource(VKLogin, '/login/vk')
 api.add_resource(VKAuthorize, '/login/vk/authorized')
-api.add_resource(MakeOrder, '/make-order')
+api.add_resource(OrderRoute, '/order')

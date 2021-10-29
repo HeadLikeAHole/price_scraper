@@ -19,5 +19,6 @@
 	"avatar_delete_failed": "Server error. Avatar could not be deleted.",
 	"avatar_not_found": "Avatar not found.",
 	"password_updated": "Password updated successfully.",
-	"product_not_found": "Product id={} not found."
+	"product_not_found": "Product id={} not found.",
+	"order_error": "Something went wrong while making an order."
 }
