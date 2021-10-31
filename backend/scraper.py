@@ -1,23 +1,32 @@
-import requests
+import re
+
 from bs4 import BeautifulSoup
+import requests
 
 
-def check_price(user_id=None, product_id=None):
-    
-    URL = 'https://www.lamoda.ru/p/rtlaao673801/shoes-nike-krossovki/'
+# css classes by which prices are searched
+CSS_CLASSES = {
+    'ozon': 'product-prices__price'
+}
 
-    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101 Firefox/91.0'}
 
-    desired_price = 10000
+def extract_store_name(url):
+    result = re.search(r'www\.(\w+)\.', url)
 
-    page = requests.get(URL, headers=headers)
+    if result is not None:
+        return result.group(1)
 
-    soup = BeautifulSoup(page.content, 'html.parser')
 
-    price_str = soup.find(class_='product-prices__price').getText()
+def scrape_price(url):
+    store_name = extract_store_name(url)
 
-    # remove whitespace and letters and convert to integer
-    product_price = int(''.join([i for i in price_str if i.isdigit()]))
+    html_page = requests.get(url).text
 
-    if product_price <= desired_price:
-        send_email()
+    soup = BeautifulSoup(html_page, 'lxml')
+
+    raw_price = soup.find(class_=CSS_CLASSES[store_name]).text
+
+    # remove whitespace and letters from the string and convert to an integer
+    product_price = int(''.join([char for char in raw_price if char.isdigit()]))
+
+    return product_price

@@ -11,10 +11,11 @@ from flask_jwt_extended import (
 )
 
 from backend import app, api, db, bcrypt
-from backend.validation import get_data_or_400
+from backend.validation import get_data_or_400, request
 from backend.models import User, BlockedToken, RegistrationConfirmation
 from backend.schemas import UserSchema, LoginSchema
 from backend.translation import get_text as _
+from backend.scraper import scrape_price
 
 
 @app.route('/')
@@ -149,6 +150,12 @@ class SetNewPassword(Resource):
         return {'error': _('user_not_found')}, 404
 
 
+class Price(Resource):
+    def post(self):
+        url = request.get_json()['url']
+        return {'price': scrape_price(url)}
+
+
 api.add_resource(Users, '/users')
 api.add_resource(Login, '/login')
 api.add_resource(Logout, '/logout')
@@ -156,3 +163,4 @@ api.add_resource(RefreshToken, '/refresh-token')
 api.add_resource(ConfirmRegistration, '/confirm-registration/<string:registration_confirmation_id>')
 api.add_resource(ConfirmRegistrationByUser, '/confirm-registration-by-user/<int:user_id>')
 api.add_resource(SetNewPassword, '/set-new-password')
+api.add_resource(Price, '/price')

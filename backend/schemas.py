@@ -4,7 +4,7 @@ from marshmallow import pre_dump
 
 from backend import ma
 from backend.validation import is_unique
-from backend.models import User, RegistrationConfirmation
+from backend.models import User
 from backend.translation import get_text as _
 
 
