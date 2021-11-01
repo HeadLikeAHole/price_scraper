@@ -6,7 +6,8 @@ import requests
 
 # css classes by which prices are searched
 CSS_CLASSES = {
-    'ozon': 'product-prices__price'
+    'wildberries': 'price-block__commission-current-price',
+    'lamoda': 'product-prices-root',
 }
 
 
@@ -20,7 +21,9 @@ def extract_store_name(url):
 def scrape_price(url):
     store_name = extract_store_name(url)
 
-    html_page = requests.get(url).text
+    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101 Firefox/91.0'}
+
+    html_page = requests.get(url, headers).text
 
     soup = BeautifulSoup(html_page, 'lxml')
 

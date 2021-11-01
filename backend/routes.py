@@ -153,6 +153,7 @@ class SetNewPassword(Resource):
 class Price(Resource):
     def post(self):
         url = request.get_json()['url']
+        print(url)
         return {'price': scrape_price(url)}
 
 
