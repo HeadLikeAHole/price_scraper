@@ -2,12 +2,13 @@ from flask import request
 from flask_restful import abort
 from marshmallow import ValidationError
 
-from backend.models import User
+from backend.models.users import User
 from backend.translation import get_text as _
 
 
 def get_data_or_400(schema, **kwargs):
     try:
+        print(request.get_json())
         return schema.load(request.get_json(), **kwargs)
     except ValidationError as err:
         abort(400, errors=err.messages)

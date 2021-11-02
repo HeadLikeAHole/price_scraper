@@ -1,6 +1,5 @@
 from datetime import datetime
 
-from flask import send_from_directory
 from flask_restful import Resource
 from flask_jwt_extended import (
     create_access_token,
@@ -10,17 +9,11 @@ from flask_jwt_extended import (
     get_jwt
 )
 
-from backend import app, api, db, bcrypt
-from backend.validation import get_data_or_400, request
-from backend.models import User, BlockedToken, RegistrationConfirmation
-from backend.schemas import UserSchema, LoginSchema
+from backend import api, db, bcrypt
+from backend.validation import get_data_or_400
+from backend.models.users import User, BlockedToken, RegistrationConfirmation
+from backend.schemas.users import UserSchema, LoginSchema
 from backend.translation import get_text as _
-from backend.scraper import scrape_price
-
-
-@app.route('/')
-def index():
-    return send_from_directory(app.static_folder, 'index.html')
 
 
 class Users(Resource):
@@ -150,13 +143,6 @@ class SetNewPassword(Resource):
         return {'error': _('user_not_found')}, 404
 
 
-class Price(Resource):
-    def post(self):
-        url = request.get_json()['url']
-        print(url)
-        return {'price': scrape_price(url)}
-
-
 api.add_resource(Users, '/users')
 api.add_resource(Login, '/login')
 api.add_resource(Logout, '/logout')
@@ -164,4 +150,3 @@ api.add_resource(RefreshToken, '/refresh-token')
 api.add_resource(ConfirmRegistration, '/confirm-registration/<string:registration_confirmation_id>')
 api.add_resource(ConfirmRegistrationByUser, '/confirm-registration-by-user/<int:user_id>')
 api.add_resource(SetNewPassword, '/set-new-password')
-api.add_resource(Price, '/price')

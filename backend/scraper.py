@@ -6,8 +6,13 @@ import requests
 
 # css classes by which prices are searched
 CSS_CLASSES = {
-    'wildberries': 'price-block__commission-current-price',
-    'lamoda': 'product-prices-root',
+    'wildberries': [
+        'price-block__final-price',
+        'price-block__commission-current-price'
+    ],
+    'lamoda': [
+        'product-prices-root'
+    ],
 }
 
 
@@ -27,9 +32,15 @@ def scrape_price(url):
 
     soup = BeautifulSoup(html_page, 'lxml')
 
-    raw_price = soup.find(class_=CSS_CLASSES[store_name]).text
+    for class_ in CSS_CLASSES[store_name]:
+        if soup.find(class_=class_) is None:
+            continue
+        else:
+            raw_price = soup.find(class_=CSS_CLASSES[store_name]).text
 
-    # remove whitespace and letters from the string and convert to an integer
-    product_price = int(''.join([char for char in raw_price if char.isdigit()]))
+            # remove whitespace and letters from the string and convert to an integer
+            product_price = int(''.join([char for char in raw_price if char.isdigit()]))
 
-    return product_price
+            return product_price
+
+    return None

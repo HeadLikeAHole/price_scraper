@@ -1,4 +1,5 @@
 import os
+import re
 import smtplib
 
 
@@ -14,3 +15,10 @@ def send_email(subject, body, recipient):
     print('Email has been sent!')
 
     server.quit()
+
+
+def extract_store_name(url):
+    result = re.search(r'www\.(\w+)\.', url)
+
+    if result is not None:
+        return result.group(1)

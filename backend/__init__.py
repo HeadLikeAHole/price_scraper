@@ -19,11 +19,13 @@ db = SQLAlchemy(app)
 # should go after db declaration
 ma = Marshmallow(app)
 
+# models should be imported here so they can be detected during migrations
 migrate = Migrate(app, db)
 
 bcrypt = Bcrypt(app)
 
-from backend import routes, models
+from backend.routes import index, products, users
+from backend.models import products, users
 
 jwt = JWTManager(app)
 
@@ -31,5 +33,5 @@ jwt = JWTManager(app)
 @jwt.token_in_blocklist_loader
 def check_if_token_revoked(jwt_header, jwt_payload):
     jti = jwt_payload['jti']
-    token = models.BlockedToken.query.filter_by(jti=jti).first()
+    token = users.BlockedToken.query.filter_by(jti=jti).first()
     return token is not None

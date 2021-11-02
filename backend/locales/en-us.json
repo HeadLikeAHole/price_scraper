@@ -11,5 +11,8 @@
 	"registration_confirmation_success": "Registration confirmation has been successful.",
 	"user_not_found": "User not found.",
 	"registration_confirmation_email_sent": "Registration confirmation email has been sent.",
-	"password_updated": "Password updated successfully."
+	"password_updated": "Password updated successfully.",
+	"invalid_product_title": "Product title must be between 1 and 200 characters long.",
+	"invalid_store_name": "Store name must be between 1 and 200 characters long.",
+	"invalid_link_length": "Link must be between 1 and 300 characters long."
 }
