@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: a97c46f4d65c
+Revision ID: ae715c933ec3
 Revises: 
-Create Date: 2021-11-01 21:25:21.838477
+Create Date: 2021-11-03 10:53:24.787109
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'a97c46f4d65c'
+revision = 'ae715c933ec3'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -27,8 +27,8 @@ def upgrade():
     op.create_table('store',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=50), nullable=False),
-    sa.Column('link', sa.Text(), nullable=False),
-    sa.Column('css_class', sa.String(length=100), nullable=True),
+    sa.Column('url', sa.String(length=300), nullable=False),
+    sa.Column('css_classes', sa.Text(), nullable=True),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('name')
     )
@@ -43,10 +43,10 @@ def upgrade():
     )
     op.create_table('product',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('link', sa.Text(), nullable=False),
-    sa.Column('title', sa.Text(), nullable=True),
-    sa.Column('current_price', sa.Boolean(), nullable=True),
-    sa.Column('desired_price', sa.Boolean(), nullable=True),
+    sa.Column('name', sa.String(length=200), nullable=False),
+    sa.Column('url', sa.String(length=300), nullable=False),
+    sa.Column('desired_price', sa.Integer(), nullable=False),
+    sa.Column('current_price', sa.Integer(), nullable=True),
     sa.Column('is_monitored', sa.Boolean(), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=False),
     sa.Column('store_id', sa.Integer(), nullable=False),

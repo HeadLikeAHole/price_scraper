@@ -22,3 +22,5 @@ def extract_store_name(url):
 
     if result is not None:
         return result.group(1)
+
+    return None

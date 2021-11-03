@@ -16,24 +16,16 @@ CSS_CLASSES = {
 }
 
 
-def extract_store_name(url):
-    result = re.search(r'www\.(\w+)\.', url)
-
-    if result is not None:
-        return result.group(1)
-
-
-def scrape_price(url):
-    store_name = extract_store_name(url)
-
+def scrape_price(url, css_classes):
     headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101 Firefox/91.0'}
 
     html_page = requests.get(url, headers).text
 
     soup = BeautifulSoup(html_page, 'lxml')
 
-    for class_ in CSS_CLASSES[store_name]:
-        if soup.find(class_=class_) is None:
+    css_classes_list = css_classes.split(", ")
+    for css_class in css_classes_list:
+        if soup.find(class_=css_class) is None:
             continue
         else:
             raw_price = soup.find(class_=CSS_CLASSES[store_name]).text
