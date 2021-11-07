@@ -23,12 +23,13 @@ def scrape_price(url, css_classes):
 
     soup = BeautifulSoup(html_page, 'lxml')
 
-    css_classes_list = css_classes.split(", ")
+    css_classes_list = css_classes.split(', ')
     for css_class in css_classes_list:
-        if soup.find(class_=css_class) is None:
+        html_element = soup.find(class_=css_class)
+        if html_element is None:
             continue
         else:
-            raw_price = soup.find(class_=CSS_CLASSES[store_name]).text
+            raw_price = html_element.text
 
             # remove whitespace and letters from the string and convert to an integer
             product_price = int(''.join([char for char in raw_price if char.isdigit()]))
