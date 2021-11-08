@@ -5,6 +5,7 @@ from flask_marshmallow import Marshmallow
 from flask_migrate import Migrate
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import JWTManager
+from celery import Celery
 
 
 app = Flask(__name__, static_url_path='', static_folder='../frontend/build')
@@ -35,3 +36,23 @@ def check_if_token_revoked(jwt_header, jwt_payload):
     jti = jwt_payload['jti']
     token = users.BlockedToken.query.filter_by(jti=jti).first()
     return token is not None
+
+
+def make_celery(app):
+    celery = Celery(
+        app.import_name,
+        backend=app.config['RESULT_BACKEND'],
+        broker=app.config['CELERY_BROKER_URL']
+    )
+    celery.conf.update(app.config)
+
+    class ContextTask(celery.Task):
+        def __call__(self, *args, **kwargs):
+            with app.app_context():
+                return self.run(*args, **kwargs)
+
+    celery.Task = ContextTask
+    return celery
+
+
+celery = make_celery(app)

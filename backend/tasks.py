@@ -1,14 +1,12 @@
-import os
-
 from celery import Celery
 
 
-cel = Celery('test', broker=os.environ.get('CELERY_BROKER'), backend=os.environ.get('CELERY_BACKEND'))
+app = Celery('tasks', backend='rpc://', broker='pyamqp://')
 
 
-@cel.task
-def run(x, y):
-    return x * y
+@app.task
+def add(x, y):
+    return x + y
 
 
-# celery -A test worker --loglevel=INFO --pool=solo
+# celery -A backend.tasks worker --loglevel=INFO --pool=solo
