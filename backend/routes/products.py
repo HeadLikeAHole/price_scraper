@@ -5,7 +5,6 @@ from backend import api, db
 from backend.models.products import Product, Store
 from backend.validation import get_data_or_400
 from backend.schemas.products import ProductSchema, StoreSchema
-from backend.scraper import scrape_price
 from backend.utils import extract_store_name
 
 
@@ -26,10 +25,9 @@ class Products(Resource):
         store = Store.query.filter_by(name=store_name).first()
 
         product.store_id = store.id
-        print(product.store_id)
 
-        # db.session.add(user)
-        # db.session.commit()
+        db.session.add(product)
+        db.session.commit()
 
         return product_schema.dump(product), 201
 

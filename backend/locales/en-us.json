@@ -14,5 +14,7 @@
 	"password_updated": "Password updated successfully.",
 	"invalid_product_title": "Product title must be between 1 and 200 characters long.",
 	"invalid_store_name": "Store name must be between 1 and 200 characters long.",
-	"invalid_link_length": "Link must be between 1 and 300 characters long."
+	"invalid_link_length": "Link must be between 1 and 300 characters long.",
+	"price_drop": "The price for {} has dropped to {}.",
+	"check_product_link": "Check the product link {}."
 }
