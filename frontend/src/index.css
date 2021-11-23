@@ -4,8 +4,15 @@
   box-sizing: border-box;
 }
 
-body {
+:root {
+  --orange: #F2994A;
+  --cyan: #99EFD0;
+  --purple: #8476AA;
+}
+
+html {
   background: linear-gradient(222.26deg, #3B1D60 1.22%, #040D3E 106.28%);
+  position: relative;
 }
 
 .container {
@@ -15,9 +22,98 @@ body {
   margin-left: auto;
 }
 
+nav {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 30px;
+}
+
+.logo {
+  height: 36px;
+}
+
+.logo img {
+  height: 100%;
+}
+
+.nav-buttons {
+  display: flex;
+}
+
+.btn {
+  font-family: 'Rubik', sans-serif;
+  font-weight: 500;
+  text-align: center;
+  text-transform: uppercase;
+  background: rgba(0, 0, 0, 0);
+  color: var(--orange);
+  border: 1px solid var(--orange);
+  border-radius: 3px;
+}
+
+.btn:hover {
+  background: var(--orange);
+  color: #fff;
+}
+
+.btn-nav {
+  font-size: 12px;
+  line-height: 20px;
+  letter-spacing: 2px;
+  width: 112px;
+  height: 36px;
+}
+
+.btn-nav:first-of-type {
+  margin-right: 15px;
+}
+
+main {
+  margin-top: 50px;
+  width: 100%;
+}
+
+.main-first-text {
+  width: 600px;
+}
+
+.main-first-title {
+  font-family: 'Inter', sans-serif;
+  font-size: 44px;
+  color: var(--cyan);
+}
+
+.main-first-description {
+  font-family: 'Mulish', sans-serif;
+  font-size: 18px;
+  color: var(--purple);
+  margin-top: 20px;
+}
+
+.running-man {
+  position: absolute;
+  top: 110px;
+  right: 20px;
+}
+
+.running-man img {
+  width: 100%;
+}
+
+.main-second-title {
+  font-family: 'Inter', sans-serif;
+  font-size: 36px;
+  color: var(--cyan);
+  margin-top: 0;
+}
+
 @media (min-width: 768px) {
   .container {
     width: 750px;
+  }
+
+  .running-man {
+    top: 100px;
   }
 }
 
@@ -25,10 +121,55 @@ body {
   .container {
     width: 970px;
   }
+
+  main {
+    margin-top: 100px;
+  }
+
+  .running-man {
+    top: 140px;
+  }
 }
 
 @media (min-width: 1200px) {
   .container {
     width: 1170px;
+  }
+
+  main {
+    margin-top: 150px;
+  }
+
+  .running-man {
+    top: 180px;
+  }
+}
+
+@media (max-width: 400px) {
+  nav {
+    display: block;
+    text-align: center;
+  }
+
+  .nav-buttons {
+    margin-top: 40px;
+    justify-content: center;
+  }
+
+  .running-man {
+    top: 190px;
+  }
+}
+
+@media (max-width: 590px) {
+  .main-first-text {
+    width: 100%;
+  }
+}
+
+@media (max-width: 770px) {
+  .running-man {
+    left: 30px;
+    right: 30px;
   }
 }
